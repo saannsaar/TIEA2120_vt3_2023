@@ -1,0 +1,71 @@
+body {
+   background-color: rgb(238, 224, 224);
+   color: black;
+}
+
+#formidiv {
+   border-style: solid;
+   width: 70%;
+   border-width: 5px;
+   border-color: #FFC652;
+   padding: 10px;
+   margin-right: 20px;
+}
+#lisays {
+   width: 100%;
+}
+p {
+ display: flex;
+ flex-direction: row;
+ margin-top: 2px;
+ margin-bottom: 6px;
+}
+label{
+  display: inline-block;
+ text-align: left;
+  width: 100%;
+}
+
+input {
+   display: inline-block;
+   vertical-align: middle;
+   align-self: right;
+}
+
+form {
+   width: 100%;
+}
+
+#leimaukset {
+   margin-top: 40px;
+   display: flex;
+   justify-content: space-between;
+}
+
+#sarjaiset {
+   margin-top: 10px;
+   display: flex;
+   justify-content: space-between;
+}
+
+#eka {
+   display: flex;
+   flex-direction: row;
+}
+
+.leimausdivit {
+   width: 80%;
+   display: flex;
+  flex-direction: row;
+  
+}
+#leimausfieldset {
+
+  padding: 4%;
+   background-color: #FFC652;
+}
+
+.leimauksetinput {
+   padding: 1px;
+   margin: 1px;
+}
