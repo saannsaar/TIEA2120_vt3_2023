@@ -65,13 +65,16 @@ sortedLeimaustavat.sort(function(a,b){
   return a[1].localeCompare(b[1]);
 });
 
-let kokeilu = "2017-03-18T09:00";
-console.log(kokeilu.replace(/-/g, ':'));
+
 console.log(rastiObj);
+
+let tbody = document.getElementsByTagName("tbody")[0];
+
   console.log(data);
   joukkuelistaus();
  lomakebuttonit();
- rastivaihtoehdot();
+ ekaRastiInput();
+
  let leimausinputit = document.getElementsByClassName("leimausvalinta");
  
 
@@ -145,22 +148,7 @@ console.log(rastiObj);
           sarjaObj[child.nimi] = child.id;
   }
 
-  function rastivaihtoehdot() {
   
-    let datalista = document.getElementById("leimauslista");
-    
-    for (let key in data.rastit) {
-     
-      let option = document.createElement("option");
-   
-      option.value = data.rastit[key].koodi;
-      option.id = key;
-      datalista.appendChild(option);
-      
-    }
-     console.log(datalista);
-   
-  }
 
 function joukkuelisays() {
 
@@ -190,6 +178,9 @@ function joukkuelisays() {
       valitutleimaustavat.push(leimaustapaboxit[i].value);
     }
   }
+
+
+
  let rastileimausrivit = lisayslomake.getElementsByClassName("leimausrivi");
  let lisattavatrastileimaukset = [];
  for (let i = 0; i < rastileimausrivit.length; i++) {
@@ -216,11 +207,10 @@ function joukkuelisays() {
       };
       lisattavatrastileimaukset.push(uusirasti);
     }
-   
-    
   }
-  
  }
+
+
  console.log(lisattavatrastileimaukset);
  
 let jasenet = [];
@@ -423,12 +413,24 @@ data.leimaustavat.forEach((l, index) => {
 }
 let fieldset1 = document.getElementById("fieldsetti");
 let jaseninputlaatikot = document.getElementById("jaseninputit");
-  
+
+let trrivit = lomake.getElementsByClassName("leimausrivi");
 let tallennusbutton = document.getElementById("tallennusnappi");
 
 function muokkaaJoukkuetta(e) {
   
   lomake.reset();
+  for (let i = 0; i < jaseninputlaatikot.children.length; i++) {
+    if (i > 1) {
+      jaseninputlaatikot.children[i].remove();
+    }
+  }
+  console.log(trrivit);
+  console.log(trrivit.length);
+if (trrivit.length > 1) {
+  tbody.textContent = "";
+}
+console.log(trrivit);
   tallennusbutton.value = "Muokkaa";
   
   let joukkue = e.currentTarget.joukkue;
@@ -514,8 +516,8 @@ function muokkaaJoukkuetta(e) {
 
     p.children[1].indeksi = i; 	
 	}
-  
- let tbody = document.getElementsByTagName("tbody")[0];
+
+ 
   let o = 0;
   for (; o < muokattava_joukkue["rastileimaukset"].length; o++) {
     let rleimaus = muokattava_joukkue["rastileimaukset"][o];
@@ -530,7 +532,7 @@ function muokkaaJoukkuetta(e) {
      let td1 = document.createElement("td");
      // Rastinvalinta input
      let rastiinput = document.createElement("input");
-     let idnumero = o+1;
+     let idnumero = o;
      rastiinput.setAttribute("list", "leimalista"+idnumero);
      rastiinput.classList = "leimausvalinta";
 
@@ -546,7 +548,7 @@ function muokkaaJoukkuetta(e) {
           lista.appendChild(option);
           
         }
- 
+
        
       rastiinput.value = rastiObj[muokattava_joukkue["rastileimaukset"][o].rasti];
     td1.appendChild(rastiinput);
@@ -566,6 +568,7 @@ function muokkaaJoukkuetta(e) {
      let check = document.createElement("input");
      check.type ="checkbox";
      check.classList = "poistaleimaus";
+     check.addEventListener("click", poistetaanko);
      let label = document.createElement("label");
      label.textContent ="Poista";
      td3.appendChild(check);
@@ -577,9 +580,9 @@ function muokkaaJoukkuetta(e) {
     
     }
     if (rleimaus) {
-    console.log(tr.firstElementChild.nextElementSibling.firstChild);
+    //console.log(tr.firstElementChild.nextElementSibling.firstChild);
     tr.firstElementChild.firstElementChild.value = rastiObj[muokattava_joukkue["rastileimaukset"][o].rasti];
-    console.log(tr.firstElementChild.firstChild);
+    //console.log(tr.firstElementChild.firstChild);
     tr.firstElementChild.nextElementSibling.firstElementChild.value = muokattava_joukkue["rastileimaukset"][o].aika; 
     }
   }
@@ -680,7 +683,10 @@ lomake.addEventListener("submit", function(e) {
     e.preventDefault();
 
     let valittusarja = lomake.getElementsByClassName("sarjabutton");
+
 // ====================// ====================
+// Etsitään sarja radiobuttoneista checkattu button ja tallennetaan sen
+//labelin teksti talteen
   let valittusarjavalue;
   for (let i = 0; i < valittusarja.length; i++) {
     if (valittusarja[i].checked) {
@@ -689,6 +695,8 @@ lomake.addEventListener("submit", function(e) {
   }
   let leimaustapaboxit = lomake.getElementsByClassName("leimausbutton");
 
+  // Käydään valitut leimaustavat läpi ja etsitään sieltä checkatut
+  // jotka lisätään aputaulukkoon 
   let valitutleimaustavat = [];
   for (let i = 0; i < leimaustapaboxit.length; i++) {
     if (leimaustapaboxit[i].checked) {
@@ -696,6 +704,38 @@ lomake.addEventListener("submit", function(e) {
     }
   }
 
+ 
+  let rastileimausrivit = lomake.getElementsByClassName("leimausrivi");
+  let lisattavatrastileimaukset = [];
+  for (let i = 0; i < rastileimausrivit.length; i++) {
+   let rivi = rastileimausrivit[i].getElementsByTagName("input");
+   console.log(rivi[0].value);
+   if (rivi[2].checked == true) {
+      continue;
+   }
+   if (!rivi[0].value) {
+     continue;
+   } else {
+     let rastinimi = Object.keys(rastiObj).find(key => rastiObj[key] == rivi[0].value);
+     let rastiaika = rivi[1].value;
+     rastiaika.toString();
+     let t = rastiaika.replace(/T/, ' ');
+     if (t.length == 16) {
+      let aika = t.concat(":00");
+      let uusirasti = {
+       "aika": aika,
+       "rasti": parseInt(rastinimi)
+     };
+     lisattavatrastileimaukset.push(uusirasti);
+     } else {
+       let uusirasti = {
+         "aika": t,
+         "rasti": parseInt(rastinimi)
+       };
+       lisattavatrastileimaukset.push(uusirasti);
+     }
+   }
+  }
  
  
 let jasenetarray = [];
@@ -716,12 +756,14 @@ data.leimaustavat.forEach((l, index) => {
   muokattava_joukkue["sarja"] = sarjaObj[valittusarjavalue];
   muokattava_joukkue["jasenet"] = jasenetarray;
   muokattava_joukkue["leimaustapa"] = valitutleimaustavat;
+  muokattava_joukkue["rastileimaukset"] = lisattavatrastileimaukset;
   // ====================// ====================
 
     alkuperainen_joukkue["nimi"] = muokattava_joukkue["nimi"];
     alkuperainen_joukkue["sarja"] = muokattava_joukkue["sarja"];
     alkuperainen_joukkue["leimaustapa"] = muokattava_joukkue["leimaustapa"];
     alkuperainen_joukkue["jasenet"] = muokattava_joukkue["jasenet"];
+    alkuperainen_joukkue["rastileimaukset"] = muokattava_joukkue["rastileimaukset"];
     alkuperainen_joukkue["lista"]["nimi"].textContent = muokattava_joukkue["nimi"] + " ";
     alkuperainen_joukkue["lista"]["sarja"].textContent = valittusarjavalue;
     let leimauksettext = "(";
@@ -755,6 +797,7 @@ data.leimaustavat.forEach((l, index) => {
 
     localStorage.setItem("TIEA2120-vt3-2023", JSON.stringify(data));
     lomake.reset();
+    console.log(alkuperainen_joukkue);
     console.log(jaseninputlaatikot);
     let jasenlaatikotinputit = document.getElementsByClassName("jasenet");
     for (let i = 0; i < jasenlaatikotinputit.length; i++) {
@@ -764,6 +807,11 @@ data.leimaustavat.forEach((l, index) => {
     }
     let buttonit = document.getElementsByClassName("sarjabutton");
     buttonit[0].checked = true;
+    if (trrivit.length > 1) {
+      tbody.textContent = "";
+      ekaRastiInput();
+    }
+
     tallennusbutton.value = "Tallenna";
    
 
@@ -772,8 +820,73 @@ data.leimaustavat.forEach((l, index) => {
  
 });
 
+function ekaRastiInput() {
+  let tr = document.createElement("tr");
+      tr.classList = "leimausrivi";
+  
+   
+     let td1 = document.createElement("td");
+     // Rastinvalinta input
+     let rastiinput = document.createElement("input");
+     let idnumero = 0;
+     rastiinput.setAttribute("list", "leimalista"+idnumero);
+     rastiinput.classList = "leimausvalinta";
 
+     let lista = document.createElement("datalist");
+     lista.id = "leimalista"+idnumero;
+    
+    for (let key of sortedLeimaustavat) {
+      
+          let option = document.createElement("option");
+      
+          option.value = key[1];
+          option.name = key[0];
+          lista.appendChild(option);
+          
+        }
 
+       
+    
+    td1.appendChild(rastiinput);
+    td1.appendChild(lista);
+    
+    let td2 = document.createElement("td");
+
+    
+     let aikainput = document.createElement("input");
+     aikainput.type ="datetime-local";
+     aikainput.value= "2017-03-18T09:00:00";
+     aikainput.step ="1";
+     td2.appendChild(aikainput);
+    
+    
+     let td3 = document.createElement("td");
+     let check = document.createElement("input");
+     check.type ="checkbox";
+     check.classList = "poistaleimaus";
+     check.addEventListener("click", poistetaanko);
+     let label = document.createElement("label");
+     label.textContent ="Poista";
+     td3.appendChild(check);
+     td3.appendChild(label);
+     tr.appendChild(td1);
+     tr.appendChild(td2);
+     tr.appendChild(td3);
+     tbody.appendChild(tr);
+    
+}
+
+function poistetaanko(e) {
+   let valittu = e.target;
+  
+    if (valittu.checked == true) {
+      if (window.confirm("Haluatko varmasti poistaa " + valittu.parentElement.previousSibling.previousSibling.firstElementChild.value + " rastileimauksen?")) {
+        return;
+      } else {
+        valittu.checked = false;
+      }
+    }
+}
 
 console.log(sortedLeimaustavat);
 // OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO
@@ -782,7 +895,7 @@ console.log(sortedLeimaustavat);
 let table = document.getElementById("rastileimaukset");
 
 table.addEventListener("change", function(e){
- 
+  
   let jovalitut = [];
   for (let i = 0; i < leimausinputit.length; i++) {
     let input = leimausinputit[i];
@@ -845,6 +958,7 @@ let td2 = document.createElement("td");
  let check = document.createElement("input");
  check.type ="checkbox";
  check.classList = "poistaleimaus";
+ check.addEventListener("click", poistetaanko);
  let label = document.createElement("label");
  label.textContent ="Poista";
  td3.appendChild(check);
@@ -869,16 +983,7 @@ function tsekkaaLeimausinputit(e) {
   // Koska jos ollaankin vaihdettu joku jo valittu pois niin sen ei enää 
   // tarvitse olla "disabled"
   for (let r = 0; r < leimausinputit.length; r++) {
-    if (r == 0) {
-      let apuArr = Array.from(leimausinputit[r].nextSibling.nextSibling.children);
-      for (let o = 0; o < apuArr.length; o++) {
-        if (apuArr[o].hasAttribute("disabled")) {
-        
-          apuArr[o].removeAttribute("disabled");
-         
-        }
-      }
-    } else {
+    
       let apuArr = Array.from(leimausinputit[r].nextSibling.children);
       for (let o = 0; o < apuArr.length; o++) {
         if (apuArr[o].hasAttribute("disabled")) {
@@ -887,7 +992,6 @@ function tsekkaaLeimausinputit(e) {
          
         }
       }
-    }
     
   }
 
@@ -907,20 +1011,12 @@ function tsekkaaLeimausinputit(e) {
           continue;
         } else {
          
-          if (i== 0) {
-          
-            let poistettava = Array.from(leimausinputit[i].nextSibling.nextSibling.children).find(elem => elem.value == tsekattava);
-           
-            poistettava.setAttribute("disabled", "true");
-          
-    
-          } else {
            // Etsitään datalististä tsekattava arvo ja laitetaan sille attribuutti "disabled"
             let poistettava = Array.from(leimausinputit[i].nextSibling.children).find(elem => elem.value == tsekattava);
          
           poistettava.setAttribute("disabled", "true");
          
-          }
+          
         }
     
       }
