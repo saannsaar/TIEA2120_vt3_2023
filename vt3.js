@@ -50,7 +50,7 @@ function alustus() {
 function start(data) {
   // tänne oma koodi
 
-
+let buttonit = document.getElementsByClassName("sarjabutton");
   let rastitt = data.rastit;
   // Tehdään rastiobjekti jotta rastien id, ja koodin käsittely on
   // jatkossa helpompaa
@@ -178,7 +178,8 @@ function joukkuelisays() {
     }
   }
 
-
+// Käydään läpi leimausboxit ja etsitään kaikki valitut ja lisätään ne 
+// aputaulukkoon "valitutleimuastavat"
   let leimaustapaboxit = lisayslomake.getElementsByClassName("leimausbutton");
   let valitutleimaustavat = [];
   for (let i = 0; i < leimaustapaboxit.length; i++) {
@@ -188,31 +189,41 @@ function joukkuelisays() {
   }
 
 
-
+// Käydään rastileimauksien inputit läpi table:n rivien mukaan ja täytetyt rastit lisätään
+// aputaulukkoon 
  let rastileimausrivit = lisayslomake.getElementsByClassName("leimausrivi");
  let lisattavatrastileimaukset = [];
  for (let i = 0; i < rastileimausrivit.length; i++) {
   let rivi = rastileimausrivit[i].getElementsByTagName("input");
   console.log(rivi[0].value);
+  // Jos rastin nimeä ei ole täytetty, ei lisätä aputaulukkoon tyhjää
   if (!rivi[0].value) {
     continue;
   } else {
+    // Etsitään rastin indeksi (joka on tallennettu rastiObj:iin), jotta osataan lisätä oikea
+    // rastiviite tietorakenteeseen 
     let rastinimi = Object.keys(rastiObj).find(key => rastiObj[key] == rivi[0].value);
     let rastiaika = rivi[1].value;
     rastiaika.toString();
+    // Muutetaan aikainputin antama aika oikeaan muotoon
     let t = rastiaika.replace(/T/, ' ');
+    // Jos käyttäjä ei ole lisännyt sekunteja, lisätään perään :00 koska muuten sekunteja
+    // ei näy lisättävässä ajassa
     if (t.length == 16) {
      let aika = t.concat(":00");
+     //Uusi rastileimaus objekti
      let uusirasti = {
       "aika": aika,
       "rasti": parseInt(rastinimi)
     };
     lisattavatrastileimaukset.push(uusirasti);
     } else {
+      //Uusi rastileimaus objekti
       let uusirasti = {
         "aika": t,
         "rasti": parseInt(rastinimi)
       };
+      // Työnnetään uusirasti objekti taulukkoon
       lisattavatrastileimaukset.push(uusirasti);
     }
   }
@@ -223,7 +234,8 @@ function joukkuelisays() {
  
 let jasenet = [];
 let jasenlaatikot = document.getElementsByClassName("jasenet");
-
+// Käydään jäsenten lisäys inputit läpi ja jos ei ole tyhjä, lisätään inputissa
+// oleva arvo jasenet-taulukkoon
 for (let i = 0; i < jasenlaatikot.length; i++) {
   if (jasenlaatikot[i].value.length == 0) {
     continue;
@@ -231,7 +243,7 @@ for (let i = 0; i < jasenlaatikot.length; i++) {
     jasenet.push(jasenlaatikot[i].value);
   }
 }
-  // LIsättävä joukkue
+  // Tietorakenteeseen lisättävä isättävä joukkue-objekti
   let uusijoukkue = {
     "nimi": nimilaatikko.value,
     "sarja": sarjaObj[valittusarjavalue],
@@ -239,9 +251,10 @@ for (let i = 0; i < jasenlaatikot.length; i++) {
     "rastileimaukset": lisattavatrastileimaukset,
     "leimaustapa": valitutleimaustavat
   };
-
+  // Työnnetään uusi joukkue olemassaolevaan tietorakenteeseen
   data.joukkueet.push(uusijoukkue);
   console.log(uusijoukkue);
+  //Tallennetaan 
   localStorage.setItem("TIEA2120-vt3-2023", JSON.stringify(data));
  
   return;
@@ -252,16 +265,9 @@ for (let i = 0; i < jasenlaatikot.length; i++) {
 
 
 let checkboxi = document.getElementsByClassName("leimausbutton")[0];
-console.log(checkboxi);
-
 let lomake = document.forms[0];
 
-
-
 // ================================================================
-
-
-
 
 let lomake2 = document.getElementById("leimausform");
   let leimauslaatikko = lomake2.lleimaus;
@@ -271,37 +277,48 @@ let lomake2 = document.getElementById("leimausform");
     let leimausnimi = e.target;
 
     leimausnimi.setCustomValidity("");
-
+    // Käydään kaikki leimaustavat läpi tietorakenteesta, ja jos löytyy saman niminen
+    // kuin mitä käyttäjä yrittää lisätä, estetään se 
     for (let l of data.leimaustavat) {
       if (l.trim().toLowerCase() === leimausnimi.value.trim().toLowerCase()) {
         leimausnimi.setCustomValidity(l.concat(" on jo lisätty!"));
-      } else if ( leimausnimi.value.trim().toLowerCase().length < 2) {
+      } 
+      // Jos käyttäjän syöttämä leimaustavan nimi on alle 2 merkkiä pitkä, estetään lisäys
+      else if ( leimausnimi.value.trim().toLowerCase().length < 2) {
         leimausnimi.setCustomValidity("Nimen pitää olla vähintään 2 merkkiä pitkä");
       }
     }
   });
 
+  // Leimaustavan lisäys lomakkeen submit tapahtuma
   lomake2.addEventListener("submit", function(e) {
 
     e.preventDefault();
-
+    // Leimauksen lisäysfunktio
     lisaaLeimaus();
+    // Resetoidaan joukkueen lisäys lomake jotta uusi leimaustapa päivittyy myös sinne
     lomake.reset();
+    // Generoidaan lomakebuttonit uudestaan, koska leimaustapojen rakenne on muuttunut
     lomakebuttonit();
+    // Valitaan ensimmäinen sarja radiobutton oletukseksi 
     let buttonit = document.getElementsByClassName("sarjabutton");
     buttonit[0].checked = true;
+    // Resetoidaan leimaustavan lisäys lomake
     lomake2.reset();
 
   });
 
+// Lisätään uusi leimaustapa
 function lisaaLeimaus() {
   let lomake2 = document.getElementById("leimausform");
   let leimauslaatikko = lomake2.lleimaus;
   
-
+  // etsitään nimi inputin arvo
   let uusileimaus = leimauslaatikko.value;
+  // Lisätään arvo olemassa olevaan tietorakenteeseen
   data.leimaustavat.push(uusileimaus);
   console.log(data.leimaustavat);
+  // Tallennetaan
   localStorage.setItem("TIEA2120-vt3-2023", JSON.stringify(data));
 return;
   
@@ -312,7 +329,7 @@ return;
 
 let muokattava_joukkue = {};
 let alkuperainen_joukkue = muokattava_joukkue;
-
+// Joukkuelistaus funktio
 function joukkuelistaus() {
 
     
@@ -322,10 +339,11 @@ function joukkuelistaus() {
   // let formi = document.getElementsByTagName("form");
   // let formi1 = formi[0];
 
+  // Etsitään oikea ul-elementti johon lisätään listaus
   let ululoin = document.getElementById("lista");
   
 
-
+  // Järjestetään joukkueet aakkosjärjestykseen 
   let jarjestetytJoukkueet = Array.from(data.joukkueet).sort((a,b) => a.nimi.localeCompare(b.nimi));
   let sarjat = data.sarjat;
   let e = 0; 
@@ -336,13 +354,15 @@ function joukkuelistaus() {
   for ( let sarja of sarjat) {
           sarjaObj[sarja.id] = sarja.nimi;
   }
-
+  // Luodaan leimausobjekti johon tallennetaan leimauksen index numero
+  // (koska leimaustapa tallennetaan tässä muodossa joukkueelle) ja nimi
   let leimausObj = {};
 data.leimaustavat.forEach((l, index) => {
   leimausObj[index] = l;
 });
-
+  // Käydään joukkueet läpi
   jarjestetytJoukkueet.forEach((joukkue, index) => {
+    // Luodaan joukkueen nimen ja sarjan perusteella oikeat elementit
     let lijoukkue = document.createElement("li");
     let sarjastrong = document.createElement("strong");
     let joukkuenimi = document.createTextNode(joukkue.nimi + " ");
@@ -351,7 +371,7 @@ data.leimaustavat.forEach((l, index) => {
 			let a = document.createElement("a");
 			a.href = "#lisays";
       a.appendChild(joukkuenimi);
-
+    // Leimaustavat täytyy luoda yhdeksi stringiksi
     let leimauksettext = "(";
     for (let l = 0; l < joukkue.leimaustapa.length; l++) {
 
@@ -398,9 +418,8 @@ data.leimaustavat.forEach((l, index) => {
    // TALLENNETAAN LI-OBJEKTIIN VIITE TIETORAKENTEESSA OLEVAAN OBJEKTIIN
     lijoukkue.joukkue = joukkue;
 
-   // tallennetaan objektin sisältöä listauksessa vastaavien dom-nodejen viitteet myös objektiin
-   // jos alkuperäistä objektia ei saa muuttaa niin pitää tehdä tätä varten oma
-   // tietorakenne ja tallentaa vastaavat tiedot sinne
+   // Tallennetaan objektin sisältöä listassa vastaavien dom nodejen viitteet objektiin
+   // jotta voidaan lisätä oikeaan kohtaan mahdolliset muokkaukset
     joukkue["lista"] = {
       "nimi" : joukkuenimi,
       "sarja": sarjanimi,
@@ -408,26 +427,28 @@ data.leimaustavat.forEach((l, index) => {
       "rastileimaukset": joukkue.rastileimaukset,
       "jasenet": jasenetul
     };
+    // Joukkueen kilkkaukselle eventhandler
     lijoukkue.addEventListener("click", muokkaaJoukkuetta);
 
     ululoin.appendChild(lijoukkue);
   
   
   });
-  // Silmukka käy kaikki joukkueet läpi ja lisää ne listaukseen sivulle
- 
-
   return;
 }
+
+
 let fieldset1 = document.getElementById("fieldsetti");
 let jaseninputlaatikot = document.getElementById("jaseninputit");
 
 let trrivit = lomake.getElementsByClassName("leimausrivi");
 let tallennusbutton = document.getElementById("tallennusnappi");
 
+// Jäsenen muokkaus-funktio
 function muokkaaJoukkuetta(e) {
-  
+  // Tyhjennetään lomake jos siinä on ollut jotain ennen klikkausta
   lomake.reset();
+  // Poistetaan ylimääräiset jäsenen lisäys inputit
   for (let i = 0; i < jaseninputlaatikot.children.length; i++) {
     if (i > 1) {
       jaseninputlaatikot.children[i].remove();
@@ -435,19 +456,17 @@ function muokkaaJoukkuetta(e) {
   }
   console.log(trrivit);
   console.log(trrivit.length);
+// Jos on ylimääräisiä rastilisäys inputteja tyhjennetään ne
 if (trrivit.length > 1) {
   tbody.textContent = "";
 }
 console.log(trrivit);
+// Muutetaan submit painikkeen arvo "Muokkaa", jotta tehdään oikea submit tapahtuma
   tallennusbutton.value = "Muokkaa";
   
   let joukkue = e.currentTarget.joukkue;
 
   // tehdään kopio muokattavista tiedoista
-  // muokkaus on aina syytä tehdä kopioon ja muutokset päivitetään
-  // tietorakenteeseen vasta, kun ne hyväksytään painikkeella
-  // ei koskaan muokata suoraan alkuperäistä rakennetta, koska virheiden
-  // peruminen tulee mahdottomaksi
   muokattava_joukkue["nimi"] = joukkue["nimi"];
   muokattava_joukkue["sarja"] = joukkue["sarja"];
   muokattava_joukkue["leimaustapa"] = Array.from(joukkue["leimaustapa"]);
@@ -456,17 +475,15 @@ console.log(trrivit);
 
   console.log(muokattava_joukkue);
 
- 
-
   //Tallennetaan alkuperäisen joukkueen viite
   alkuperainen_joukkue = joukkue;
-
+  // Laitetaan lomakkeen "Nimi" kenttään muokattavan joukkueen nimi
   lomake["nimi"].value = muokattava_joukkue["nimi"];
   
   let buttonit = document.getElementsByClassName("sarjabutton");
 	
 	// Etsitään lomakkeelta oikea sarja joka muokattavalla joukkueella on ja 
-  // valitaan se
+  // valitaan se lomakkeesta
 	for (let i = 0; i < buttonit.length; i++) {
 		if (buttonit[i].id == muokattava_joukkue["sarja"]) {
 			buttonit[i].checked = true;
@@ -474,6 +491,8 @@ console.log(trrivit);
 	}
 
   let leimauksetbutton = document.getElementsByClassName("leimausbutton");
+  // Etsitään oikeat leimaustavat joukkueelta ja lisätään ne valituiksi
+  // lomakkeeseen
   for (let i = 0; i < muokattava_joukkue["leimaustapa"].length; i++ ) {
   
    for (let l of leimauksetbutton) {
@@ -489,6 +508,9 @@ console.log(trrivit);
 
   let i = 0;
 	let jasennumero = 2;
+  // Käydään muokattavan joukkueen jäsenet läpi ja tarvittaessa lisätään
+  // inputteja ja lisätään jokaiseen inputtiin yhden
+  // jäsenen nimi
 	for (; i < muokattava_joukkue["jasenet"].length; i++) {
 		let jasen = muokattava_joukkue["jasenet"][i];
 		let p = jaseninputlaatikot.children[i];
@@ -525,6 +547,8 @@ console.log(trrivit);
 
  
   let o = 0;
+  // Käydään muokattavan joukkueen rastileimaukset läpi ja
+  //lisätään lomakkeelle lisää inputteja jos ei ole tarpeeksi
   for (; o < muokattava_joukkue["rastileimaukset"].length; o++) {
     let rleimaus = muokattava_joukkue["rastileimaukset"][o];
     let tr = tbody.children[o];
@@ -555,8 +579,10 @@ console.log(trrivit);
           
         }
 
-       
-      rastiinput.value = rastiObj[muokattava_joukkue["rastileimaukset"][o].rasti];
+    // Rastin nimi inputtiin laitetaan oikea nimi rasti objektin avulla
+    // koska joukkueeseen tallennetut rastileimaukset 
+    // on lisätty ideen perusteella
+    rastiinput.value = rastiObj[muokattava_joukkue["rastileimaukset"][o].rasti];
     td1.appendChild(rastiinput);
     td1.appendChild(lista);
     
@@ -601,12 +627,13 @@ console.log(trrivit);
 
 let joukkueennimi = document.getElementById("lisays").nimi;
 
-
 // Joukkueen nimen tarkistin
 joukkueennimi.addEventListener("input", function(e) {
   let joukkueennimi = e.target;
-  console.log(joukkueennimi);
+  console.log(joukkueennimi.value);
+  console.log(alkuperainen_joukkue["nimi"]);
   if (tallennusbutton.value == "Tallenna") {
+   
     joukkueennimi.setCustomValidity("");
 
   for (let joukkue of data.joukkueet) {
@@ -615,7 +642,18 @@ joukkueennimi.addEventListener("input", function(e) {
     } 
   }
   } else if (tallennusbutton.value == "Muokkaa") {
-    muokattava_joukkue["nimi"] = e.target.value;
+   // KORJAA TÄMÄ!!!!!!!
+    for (let joukkue of data.joukkueet) {
+      if (joukkueennimi.value.trim().toLowerCase() == alkuperainen_joukkue["nimi"]) {
+        continue;
+      } else if (joukkueennimi.value.trim().toLowerCase() == joukkue.nimi.trim().toLowerCase()) {
+        joukkueennimi.setCustomValidity(joukkue.nimi + " nimi on jo käytössä!");
+      } else {
+        muokattava_joukkue["nimi"] = e.target.value;
+        joukkueennimi.setCustomValidity("");
+      }
+    }
+   
   }
   
 });
@@ -650,7 +688,10 @@ lomake.addEventListener("change", function(e) {
   // Ei tehdä submit tapahtumaa 
   for (let l = 0; l < leimausinputit.length; l++) {
     leimausinputit[l].setCustomValidity("");
-    console.log(leimausinputit[l].value);
+   
+    if (leimausinputit.length == 1 ) {
+      continue;
+    }
     // Täytyy ohittaa tyhjät inputit muuten tarkistus ei onnistu
     if (l+1 == leimausinputit.length-1 && l+1 > 0 || l== leimausinputit.length-1 && l > 0 ) {
       continue;
@@ -673,10 +714,12 @@ let jaseninputit = document.getElementsByClassName("jasenet");
 
 console.log(leimausinputit);
 lomake.addEventListener("change", function(e) {
-
+  if (tallennusbutton.value == "Tallenna") {
+    tsekkaaAika();
+  }
     jaseninputit[1].addEventListener("input", lisaaJasenInput);
    tsekkaaLeimausinputit();
-   tsekkaaAika();
+  
 });
 //Submit tapahtumankäsittelijä jossa myös poistetaan listaus ja lisätään se uudestaan uuden jäsenen kera
 lomake.addEventListener("submit", function(e) {
@@ -699,6 +742,11 @@ lomake.addEventListener("submit", function(e) {
     lomake.reset();
     let buttonit = document.getElementsByClassName("sarjabutton");
     buttonit[0].checked = true;
+    if (trrivit.length > 1) {
+      tbody.textContent = "";
+      ekaRastiInput();
+    }
+   
   
    localStorage.setItem("TIEA2120-vt3-2023", JSON.stringify(data));
     console.log(data.joukkueet);
@@ -762,8 +810,10 @@ lomake.addEventListener("submit", function(e) {
      }
    }
   }
- 
- 
+ console.log(lisattavatrastileimaukset);
+  let sortatutrastit = lisattavatrastileimaukset.sort((a,b) => a.aika.localeCompare(b.aika));
+
+ console.log(sortatutrastit);
 let jasenetarray = [];
 let jasenlaatikot = document.getElementsByClassName("jasenet");
 
@@ -823,6 +873,7 @@ data.leimaustavat.forEach((l, index) => {
 
     localStorage.setItem("TIEA2120-vt3-2023", JSON.stringify(data));
     lomake.reset();
+
     console.log(alkuperainen_joukkue);
     console.log(jaseninputlaatikot);
     let jasenlaatikotinputit = document.getElementsByClassName("jasenet");
@@ -837,6 +888,7 @@ data.leimaustavat.forEach((l, index) => {
       tbody.textContent = "";
       ekaRastiInput();
     }
+   
 
     tallennusbutton.value = "Tallenna";
    
@@ -877,11 +929,38 @@ function ekaRastiInput() {
     td1.appendChild(lista);
     
     let td2 = document.createElement("td");
-
+    
     
      let aikainput = document.createElement("input");
+
      aikainput.type ="datetime-local";
-     aikainput.value= "2017-03-18T09:00:00";
+     let valittusarja;
+     let aika;
+     for (let i = 0; i < buttonit.length; i++) {
+      if (buttonit[i].checked == true) {
+   
+      valittusarja = buttonit[i].id;
+        // Etsitään valitun sarjan id:een perusteella tietorakenteen
+        // sarjoista vastaava sarja ja katsotaan löytyykö sille omaa
+        // alku- ja loppuaikaa
+        for (let sarja in data.sarjat) {
+   
+          if (data.sarjat[sarja].id == valittusarja) {
+            // Jos sarjalla ei ole alkuaikaa käytetään kilpailun alkuaikaa
+            if (data.sarjat[sarja].alkuaika == "")
+            {
+              aika = data.alkuaika;
+            } else {
+              aika = data.sarjat[sarja].alkuaika;
+            }
+   
+          }
+        }
+      }
+    }
+    let oletusaika = aika.toString().replace(/ /g,"T");
+    aikainput.value= oletusaika;
+    
      aikainput.step ="1";
      aikainput.classList = "aikainputit";
      td2.appendChild(aikainput);
@@ -978,14 +1057,40 @@ td1.appendChild(lista);
 let td2 = document.createElement("td");
 
 
-
+ // Luodaan input leimauksen ajalle
  let aikainput = document.createElement("input");
  aikainput.type ="datetime-local";
- aikainput.value= "2017-03-18T09:00:00";
+
+ let valittusarja;
+ let aika;
+ for (let i = 0; i < buttonit.length; i++) {
+   if (buttonit[i].checked == true) {
+
+   valittusarja = buttonit[i].id;
+     // Etsitään valitun sarjan id:een perusteella tietorakenteen
+     // sarjoista vastaava sarja ja katsotaan löytyykö sille omaa
+     // alku- ja loppuaikaa
+     for (let sarja in data.sarjat) {
+
+       if (data.sarjat[sarja].id == valittusarja) {
+         // Jos sarjalla ei ole alkuaikaa käytetään kilpailun alkuaikaa
+         if (data.sarjat[sarja].alkuaika == "")
+         {
+           aika = data.alkuaika;
+         } else {
+           aika = data.sarjat[sarja].alkuaika;
+         }
+
+       }
+     }
+   }
+ }
+ let oletusaika = aika.toString().replace(/ /g,"T");
+ aikainput.value= oletusaika;
  aikainput.step ="1";
  aikainput.classList = "aikainputit";
  td2.appendChild(aikainput);
-
+ 
 
  let td3 = document.createElement("td");
  let check = document.createElement("input");
@@ -999,10 +1104,10 @@ let td2 = document.createElement("td");
  tr.appendChild(td1);
  tr.appendChild(td2);
  tr.appendChild(td3);
- table.appendChild(tr);
+ tbody.appendChild(tr);
 
-
-    }
+console.log(tbody);
+}
 
     
 }
@@ -1012,10 +1117,10 @@ function tsekkaaAika(){
   // Etsitäään kaikki rastileimauksen aikainputit luokkanimen mukaan
   let aikainputit = document.getElementsByClassName("aikainputit");
   // Etsitään kaikki lomakkeen sarja radiobuttonit
-  let buttonit = document.getElementsByClassName("sarjabutton");
+  
 	let alku;
   let loppu;
-  console.log(sarjaObj);
+ 
 	// Etsitään lomakkeelta oikea sarja joka muokattavalla joukkueella on ja 
   // valitaan se
   let valittusarja;
