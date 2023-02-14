@@ -229,6 +229,7 @@ function joukkuelisays() {
   }
  }
 
+ lisattavatrastileimaukset.sort((a,b) => a.aika.localeCompare(b.aika));
 
  console.log(lisattavatrastileimaukset);
  
@@ -811,9 +812,8 @@ lomake.addEventListener("submit", function(e) {
    }
   }
  console.log(lisattavatrastileimaukset);
-  let sortatutrastit = lisattavatrastileimaukset.sort((a,b) => a.aika.localeCompare(b.aika));
+  
 
- console.log(sortatutrastit);
 let jasenetarray = [];
 let jasenlaatikot = document.getElementsByClassName("jasenet");
 
